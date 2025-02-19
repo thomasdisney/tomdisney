@@ -9,6 +9,7 @@ document.body.appendChild(renderer.domElement);
 const controls = new THREE.PointerLockControls(camera, renderer.domElement);
 const blocker = document.getElementById('blocker');
 
+<<<<<<< HEAD:Script.js
 // Click-to-Start
 blocker.addEventListener('click', (event) => {
     event.preventDefault();
@@ -36,6 +37,30 @@ controls.addEventListener('unlock', () => {
 // Error Handling
 document.addEventListener('pointerlockerror', () => {
     alert("Pointer lock failed. Please try again or use a compatible browser.");
+=======
+// Robust Click-to-Start
+instructions.addEventListener('click', () => {
+    console.log("Initiating pointer lock");
+    controls.lock();
+});
+
+controls.addEventListener('lock', () => {
+    console.log("Pointer locked successfully");
+    blocker.style.opacity = '0';
+    setTimeout(() => blocker.style.display = 'none', 500); // Smooth fade-out
+});
+
+controls.addEventListener('unlock', () => {
+    console.log("Pointer unlocked");
+    blocker.style.display = 'flex';
+    blocker.style.opacity = '1';
+});
+
+// Error Handling for Accessibility
+document.addEventListener('pointerlockerror', () => {
+    console.error("Pointer lock failed");
+    alert("Pointer lock unavailable. Please try again or explore in a compatible browser (e.g., Chrome, Firefox).");
+>>>>>>> 258f0a4168261685e7238e0e2cbe7a9bc173a5ae:script.js
 });
 
 // Epic Lighting
@@ -50,12 +75,21 @@ const roomSize = 10;
 const wallGeometry = new THREE.PlaneGeometry(roomSize, roomSize);
 const wallMaterial = new THREE.MeshPhongMaterial({ color: 0x001a33, side: THREE.DoubleSide });
 const walls = [
+<<<<<<< HEAD:Script.js
     new THREE.Mesh(wallGeometry, wallMaterial),
     new THREE.Mesh(wallGeometry, wallMaterial),
     new THREE.Mesh(wallGeometry, wallMaterial),
     new THREE.Mesh(wallGeometry, wallMaterial),
     new THREE.Mesh(wallGeometry, wallMaterial),
     new THREE.Mesh(wallGeometry, wallMaterial)
+=======
+    new THREE.Mesh(wallGeometry, wallMaterial), // Front
+    new THREE.Mesh(wallGeometry, wallMaterial), // Back
+    new THREE.Mesh(wallGeometry, wallMaterial), // Left
+    new THREE.Mesh(wallGeometry, wallMaterial), // Right
+    new THREE.Mesh(wallGeometry, wallMaterial), // Ceiling
+    new THREE.Mesh(wallGeometry, wallMaterial)  // Floor
+>>>>>>> 258f0a4168261685e7238e0e2cbe7a9bc173a5ae:script.js
 ];
 walls[0].position.z = -roomSize / 2;
 walls[1].position.z = roomSize / 2;
@@ -73,10 +107,17 @@ walls.forEach(wall => scene.add(wall));
 // Interactive Content Planes
 const planeGeometry = new THREE.PlaneGeometry(2, 2);
 const planeMaterials = [
+<<<<<<< HEAD:Script.js
     new THREE.MeshBasicMaterial({ color: 0xff0066 }),
     new THREE.MeshBasicMaterial({ color: 0x00ffcc }),
     new THREE.MeshBasicMaterial({ color: 0x6600ff }),
     new THREE.MeshBasicMaterial({ color: 0xffff00 })
+=======
+    new THREE.MeshBasicMaterial({ color: 0xff0066 }), // Home
+    new THREE.MeshBasicMaterial({ color: 0x00ffcc }), // About
+    new THREE.MeshBasicMaterial({ color: 0x6600ff }), // Projects
+    new THREE.MeshBasicMaterial({ color: 0xffff00 })  // Contact
+>>>>>>> 258f0a4168261685e7238e0e2cbe7a9bc173a5ae:script.js
 ];
 const contentPlanes = [
     new THREE.Mesh(planeGeometry, planeMaterials[0]),
@@ -164,6 +205,10 @@ function animate() {
         controls.moveRight(-velocity.x * delta);
         controls.moveForward(-velocity.z * delta);
 
+<<<<<<< HEAD:Script.js
+=======
+        // Dynamic particle animation
+>>>>>>> 258f0a4168261685e7238e0e2cbe7a9bc173a5ae:script.js
         const positions = particleSystem.geometry.attributes.position.array;
         for (let i = 0; i < particleCount; i++) {
             positions[i * 3 + 1] += Math.sin(time * 0.001 + i) * 0.01;
@@ -171,6 +216,10 @@ function animate() {
         particleSystem.geometry.attributes.position.needsUpdate = true;
     }
 
+<<<<<<< HEAD:Script.js
+=======
+    // Content Plane Interaction
+>>>>>>> 258f0a4168261685e7238e0e2cbe7a9bc173a5ae:script.js
     contentPlanes.forEach((plane, index) => {
         const distance = camera.position.distanceTo(plane.position);
         contentDivs[index].style.display = distance < 2 ? 'block' : 'none';
