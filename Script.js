@@ -1,46 +1,61 @@
-// Set up scene, camera, renderer
+// Scene Setup
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Set up controls
+// Pointer Lock Controls
 const controls = new THREE.PointerLockControls(camera, renderer.domElement);
 const blocker = document.getElementById('blocker');
-const instructions = document.getElementById('instructions');
 
-instructions.addEventListener('click', function () {
+// Click-to-Start
+blocker.addEventListener('click', (event) => {
+    event.preventDefault();
     controls.lock();
 });
 
-controls.addEventListener('lock', function () {
-    instructions.style.display = 'none';
-    blocker.style.display = 'none';
+// Key-to-Start (Spacebar)
+document.addEventListener('keydown', (event) => {
+    if (event.code === 'Space' && !controls.isLocked) {
+        event.preventDefault();
+        controls.lock();
+    }
 });
 
-controls.addEventListener('unlock', function () {
-    blocker.style.display = 'block';
-    instructions.style.display = '';
+controls.addEventListener('lock', () => {
+    blocker.style.opacity = '0';
+    setTimeout(() => blocker.style.display = 'none', 500);
 });
 
-// Add lights
-const ambientLight = new THREE.AmbientLight(0x404040);
+controls.addEventListener('unlock', () => {
+    blocker.style.display = 'flex';
+    blocker.style.opacity = '1';
+});
+
+// Error Handling
+document.addEventListener('pointerlockerror', () => {
+    alert("Pointer lock failed. Please try again or use a compatible browser.");
+});
+
+// Epic Lighting
+const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
 scene.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+const directionalLight = new THREE.DirectionalLight(0x00ffcc, 0.8);
+directionalLight.position.set(5, 5, 5);
 scene.add(directionalLight);
 
-// Create the room
+// Cosmic Room
 const roomSize = 10;
 const wallGeometry = new THREE.PlaneGeometry(roomSize, roomSize);
-const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
+const wallMaterial = new THREE.MeshPhongMaterial({ color: 0x001a33, side: THREE.DoubleSide });
 const walls = [
-    new THREE.Mesh(wallGeometry, wallMaterial), // front
-    new THREE.Mesh(wallGeometry, wallMaterial), // back
-    new THREE.Mesh(wallGeometry, wallMaterial), // left
-    new THREE.Mesh(wallGeometry, wallMaterial), // right
-    new THREE.Mesh(wallGeometry, wallMaterial), // ceiling
-    new THREE.Mesh(wallGeometry, wallMaterial)  // floor
+    new THREE.Mesh(wallGeometry, wallMaterial),
+    new THREE.Mesh(wallGeometry, wallMaterial),
+    new THREE.Mesh(wallGeometry, wallMaterial),
+    new THREE.Mesh(wallGeometry, wallMaterial),
+    new THREE.Mesh(wallGeometry, wallMaterial),
+    new THREE.Mesh(wallGeometry, wallMaterial)
 ];
 walls[0].position.z = -roomSize / 2;
 walls[1].position.z = roomSize / 2;
@@ -55,13 +70,13 @@ walls[5].position.y = -roomSize / 2;
 walls[5].rotation.x = -Math.PI / 2;
 walls.forEach(wall => scene.add(wall));
 
-// Create content planes
+// Interactive Content Planes
 const planeGeometry = new THREE.PlaneGeometry(2, 2);
 const planeMaterials = [
-    new THREE.MeshBasicMaterial({ color: 0xff0000 }), // home
-    new THREE.MeshBasicMaterial({ color: 0x00ff00 }), // about
-    new THREE.MeshBasicMaterial({ color: 0x0000ff }), // projects
-    new THREE.MeshBasicMaterial({ color: 0xffff00 })  // contact
+    new THREE.MeshBasicMaterial({ color: 0xff0066 }),
+    new THREE.MeshBasicMaterial({ color: 0x00ffcc }),
+    new THREE.MeshBasicMaterial({ color: 0x6600ff }),
+    new THREE.MeshBasicMaterial({ color: 0xffff00 })
 ];
 const contentPlanes = [
     new THREE.Mesh(planeGeometry, planeMaterials[0]),
@@ -69,8 +84,7 @@ const contentPlanes = [
     new THREE.Mesh(planeGeometry, planeMaterials[2]),
     new THREE.Mesh(planeGeometry, planeMaterials[3])
 ];
-// Position the planes
-contentPlanes[0].position.set(0, 0, -roomSize / 2 + 0.1); // front wall
+contentPlanes[0].position.set(0, 0, -roomSize / 2 + 0.1);
 contentPlanes[1].position.set(-roomSize / 2 + 0.1, 0, 0);
 contentPlanes[1].rotation.y = Math.PI / 2;
 contentPlanes[2].position.set(roomSize / 2 - 0.1, 0, 0);
@@ -79,7 +93,7 @@ contentPlanes[3].position.set(0, 0, roomSize / 2 - 0.1);
 contentPlanes[3].rotation.y = Math.PI;
 contentPlanes.forEach(plane => scene.add(plane));
 
-// Get the content divs
+// Content Divs
 const contentDivs = [
     document.getElementById('homeContent'),
     document.getElementById('aboutContent'),
@@ -87,8 +101,8 @@ const contentDivs = [
     document.getElementById('contactContent')
 ];
 
-// Add particle system for trippy effect
-const particleCount = 1000;
+// Trippy Particle System
+const particleCount = 1500;
 const particles = new THREE.BufferGeometry();
 const positions = new Float32Array(particleCount * 3);
 for (let i = 0; i < particleCount; i++) {
@@ -97,72 +111,49 @@ for (let i = 0; i < particleCount; i++) {
     positions[i * 3 + 2] = (Math.random() - 0.5) * roomSize * 2;
 }
 particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-const particleMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
+const particleMaterial = new THREE.PointsMaterial({ 
+    color: 0x00ffcc, 
+    size: 0.05, 
+    transparent: true,
+    blending: THREE.AdditiveBlending 
+});
 const particleSystem = new THREE.Points(particles, particleMaterial);
 scene.add(particleSystem);
 
-// Set initial camera position
+// Initial Camera Position
 camera.position.y = 1;
 
-// Movement variables
-let moveForward = false;
-let moveBackward = false;
-let moveLeft = false;
-let moveRight = false;
-
-// Event listeners for movement
-const onKeyDown = function (event) {
+// Movement Controls
+let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+const onKeyDown = (event) => {
     switch (event.code) {
-        case 'ArrowUp':
-        case 'KeyW':
-            moveForward = true;
-            break;
-        case 'ArrowLeft':
-        case 'KeyA':
-            moveLeft = true;
-            break;
-        case 'ArrowDown':
-        case 'KeyS':
-            moveBackward = true;
-            break;
-        case 'ArrowRight':
-        case 'KeyD':
-            moveRight = true;
-            break;
+        case 'ArrowUp': case 'KeyW': moveForward = true; break;
+        case 'ArrowLeft': case 'KeyA': moveLeft = true; break;
+        case 'ArrowDown': case 'KeyS': moveBackward = true; break;
+        case 'ArrowRight': case 'KeyD': moveRight = true; break;
     }
 };
-const onKeyUp = function (event) {
+const onKeyUp = (event) => {
     switch (event.code) {
-        case 'ArrowUp':
-        case 'KeyW':
-            moveForward = false;
-            break;
-        case 'ArrowLeft':
-        case 'KeyA':
-            moveLeft = false;
-            break;
-        case 'ArrowDown':
-        case 'KeyS':
-            moveBackward = false;
-            break;
-        case 'ArrowRight':
-        case 'KeyD':
-            moveRight = false;
-            break;
+        case 'ArrowUp': case 'KeyW': moveForward = false; break;
+        case 'ArrowLeft': case 'KeyA': moveLeft = false; break;
+        case 'ArrowDown': case 'KeyS': moveBackward = false; break;
+        case 'ArrowRight': case 'KeyD': moveRight = false; break;
     }
 };
-document.addEventListener('keydown', onKeyDown, false);
-document.addEventListener('keyup', onKeyUp, false);
+document.addEventListener('keydown', onKeyDown);
+document.addEventListener('keyup', onKeyUp);
 
-// Animation loop
+// Animation Loop
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
 let prevTime = performance.now();
 function animate() {
     requestAnimationFrame(animate);
     const time = performance.now();
-    if (controls.isLocked === true) {
-        const delta = (time - prevTime) / 1000;
+    const delta = (time - prevTime) / 1000;
+
+    if (controls.isLocked) {
         velocity.x -= velocity.x * 10.0 * delta;
         velocity.z -= velocity.z * 10.0 * delta;
         direction.z = Number(moveForward) - Number(moveBackward);
@@ -172,22 +163,25 @@ function animate() {
         if (moveLeft || moveRight) velocity.x -= direction.x * 400.0 * delta;
         controls.moveRight(-velocity.x * delta);
         controls.moveForward(-velocity.z * delta);
+
+        const positions = particleSystem.geometry.attributes.position.array;
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3 + 1] += Math.sin(time * 0.001 + i) * 0.01;
+        }
+        particleSystem.geometry.attributes.position.needsUpdate = true;
     }
-    prevTime = time;
-    // Check distance to content planes
+
     contentPlanes.forEach((plane, index) => {
         const distance = camera.position.distanceTo(plane.position);
-        if (distance < 2) {
-            contentDivs[index].style.display = 'block';
-        } else {
-            contentDivs[index].style.display = 'none';
-        }
+        contentDivs[index].style.display = distance < 2 ? 'block' : 'none';
     });
+
     renderer.render(scene, camera);
+    prevTime = time;
 }
 animate();
 
-// Handle window resize
+// Window Resize Handler
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
