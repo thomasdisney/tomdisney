@@ -12,7 +12,7 @@ window.addEventListener('resize', resizeCanvas);
 
 // Audio setup
 const audio = document.getElementById('spaceMusic');
-audio.src = 'your-music-file.mp3'; // Replace with your music file path
+audio.src = 'YouCantEscape.mp3';
 audio.play().catch(e => console.log("Audio play failed:", e));
 
 // Stars and Planets
