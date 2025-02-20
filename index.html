@@ -3,59 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Personal Odyssey</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background: #000;
-            font-family: 'Arial', sans-serif;
-        }
-        canvas {
-            display: block;
-        }
-        #info-panel {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 20, 0.9);
-            color: #00ffcc;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
-            z-index: 2;
-            text-align: center;
-            display: none;
-        }
-        #info-panel h1 {
-            margin: 0 0 10px;
-            font-size: 24px;
-        }
-        #info-panel p {
-            margin: 0;
-            font-size: 16px;
-        }
-        #instructions {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #00ffcc;
-            font-size: 14px;
-            background: rgba(0, 0, 20, 0.8);
-            padding: 10px;
-            border-radius: 5px;
-        }
-    </style>
+    <title>Space Flight</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="info-panel">
-        <h1 id="info-title"></h1>
-        <p id="info-text"></p>
-    </div>
-    <div id="instructions">Click the colored cubes to explore!</div>
-    <script src="https://unpkg.com/three@0.173.0/build/three.min.js"></script>
+    <canvas id="spaceCanvas"></canvas>
+    <audio id="spaceMusic" loop></audio>
     <script src="script.js"></script>
 </body>
 </html>

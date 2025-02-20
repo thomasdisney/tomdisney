@@ -1,80 +1,84 @@
-// Scene Setup
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+// Canvas setup
+const canvas = document.getElementById('spaceCanvas');
+const ctx = canvas.getContext('2d');
+let width, height;
 
-// Lighting
-const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
-scene.add(ambientLight);
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-directionalLight.position.set(5, 5, 5);
-scene.add(directionalLight);
-
-// Background Stars
-const starGeometry = new THREE.BufferGeometry();
-const starCount = 1000;
-const starPositions = new Float32Array(starCount * 3);
-for (let i = 0; i < starCount * 3; i++) {
-    starPositions[i] = (Math.random() - 0.5) * 2000;
+function resizeCanvas() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
 }
-starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 2 });
-const stars = new THREE.Points(starGeometry, starMaterial);
-scene.add(stars);
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
-// Interactive Cubes
-const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
-const cubes = [
-    { mesh: new THREE.Mesh(cubeGeometry, new THREE.MeshPhongMaterial({ color: 0xff0066 })), position: [0, 0, -5], content: { title: "Home", text: "Welcome to my cosmic hub!" } },
-    { mesh: new THREE.Mesh(cubeGeometry, new THREE.MeshPhongMaterial({ color: 0x00ffcc })), position: [-5, 0, 0], content: { title: "About", text: "A coder exploring the digital universe." } },
-    { mesh: new THREE.Mesh(cubeGeometry, new THREE.MeshPhongMaterial({ color: 0x6600ff })), position: [5, 0, 0], content: { title: "Projects", text: "Creations born from starry inspiration." } },
-    { mesh: new THREE.Mesh(cubeGeometry, new THREE.MeshPhongMaterial({ color: 0xffff00 })), position: [0, 0, 5], content: { title: "Contact", text: "Reach me across the cosmos!" } }
-];
-cubes.forEach(cube => {
-    cube.mesh.position.set(...cube.position);
-    scene.add(cube.mesh);
-});
+// Audio setup
+const audio = document.getElementById('spaceMusic');
+audio.src = 'your-music-file.mp3'; // Replace with your music file path
+audio.play().catch(e => console.log("Audio play failed:", e));
 
-// Camera Position
-camera.position.set(0, 2, 10);
-
-// Raycaster for Clicking
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-const infoPanel = document.getElementById('info-panel');
-const infoTitle = document.getElementById('info-title');
-const infoText = document.getElementById('info-text');
-
-document.addEventListener('click', (event) => {
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(cubes.map(cube => cube.mesh));
-    if (intersects.length > 0) {
-        const clickedCube = cubes.find(cube => cube.mesh === intersects[0].object);
-        infoTitle.textContent = clickedCube.content.title;
-        infoText.textContent = clickedCube.content.text;
-        infoPanel.style.display = 'block';
-        setTimeout(() => infoPanel.style.display = 'none', 3000); // Hide after 3 seconds
+// Stars and Planets
+class Particle {
+    constructor() {
+        this.reset();
     }
-});
 
-// Animation Loop
+    reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.z = Math.random() * 1000;
+        this.size = Math.random() * 2 + 1;
+        this.speed = Math.random() * 5 + 1;
+        this.isPlanet = Math.random() < 0.1; // 10% chance to be a planet
+        if (this.isPlanet) {
+            this.size = Math.random() * 10 + 5;
+            this.color = `hsl(${Math.random() * 360}, 70%, 50%)`;
+        } else {
+            this.color = '#fff';
+        }
+    }
+
+    update() {
+        this.z -= this.speed;
+        if (this.z <= 0) this.reset();
+    }
+
+    draw() {
+        const perspective = 1000 / (1000 - this.z);
+        const x = (this.x - width / 2) * perspective + width / 2;
+        const y = (this.y - height / 2) * perspective + height / 2;
+        const size = this.size * perspective;
+
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+    }
+}
+
+const particles = Array.from({ length: 200 }, () => new Particle());
+
+// Pulse effect
+let pulse = 0;
+function updatePulse() {
+    pulse = Math.sin(Date.now() * 0.001) * 0.05 + 1; // Simple sine wave for pulsing
+}
+
+// Animation loop
 function animate() {
-    requestAnimationFrame(animate);
-    cubes.forEach(cube => {
-        cube.mesh.rotation.x += 0.01;
-        cube.mesh.rotation.y += 0.01;
+    ctx.fillStyle = `rgba(0, 0, 0, ${0.1 * pulse})`;
+    ctx.fillRect(0, 0, width, height);
+
+    updatePulse();
+    particles.forEach(p => {
+        p.update();
+        p.draw();
     });
-    renderer.render(scene, camera);
+
+    requestAnimationFrame(animate);
 }
 animate();
 
-// Resize Handler
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+// Sync pulse with music (basic approximation)
+audio.addEventListener('timeupdate', () => {
+    const beat = Math.sin(audio.currentTime * 5); // Adjust multiplier for beat sensitivity
+    pulse = 1 + beat * 0.1;
 });
