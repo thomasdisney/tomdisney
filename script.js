@@ -1,1 +1,185 @@
+// Scene Setup! 
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
+// Pointer Lock Controls
+const controls = new THREE.PointerLockControls(camera, renderer.domElement);
+const startOverlay = document.getElementById('start-overlay');
+const startButton = document.getElementById('start-button');
+
+// Start Experience
+let isStarted = false;
+startButton.addEventListener('click', () => {
+    if (!isStarted) {
+        startOverlay.style.opacity = '0';
+        setTimeout(() => startOverlay.style.display = 'none', 500);
+        controls.lock();
+        isStarted = true;
+    }
+});
+
+// Control Lock/Unlock
+controls.addEventListener('lock', () => {
+    startOverlay.style.display = 'none';
+});
+controls.addEventListener('unlock', () => {
+    startOverlay.style.display = 'flex';
+    startOverlay.style.opacity = '1';
+    isStarted = false;
+});
+
+// Error Handling
+document.addEventListener('pointerlockerror', () => {
+    alert("Pointer lock failed. Please try again or use a compatible browser.");
+});
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+scene.add(ambientLight);
+const directionalLight = new THREE.DirectionalLight(0x00ffcc, 0.8);
+directionalLight.position.set(5, 5, 5);
+scene.add(directionalLight);
+
+// Room Geometry
+const roomSize = 10;
+const wallGeometry = new THREE.PlaneGeometry(roomSize, roomSize);
+const wallMaterial = new THREE.MeshPhongMaterial({ color: 0x001a33, side: THREE.DoubleSide });
+const walls = [
+    new THREE.Mesh(wallGeometry, wallMaterial),
+    new THREE.Mesh(wallGeometry, wallMaterial),
+    new THREE.Mesh(wallGeometry, wallMaterial),
+    new THREE.Mesh(wallGeometry, wallMaterial),
+    new THREE.Mesh(wallGeometry, wallMaterial),
+    new THREE.Mesh(wallGeometry, wallMaterial)
+];
+walls[0].position.z = -roomSize / 2;
+walls[1].position.z = roomSize / 2;
+walls[1].rotation.y = Math.PI;
+walls[2].position.x = -roomSize / 2;
+walls[2].rotation.y = Math.PI / 2;
+walls[3].position.x = roomSize / 2;
+walls[3].rotation.y = -Math.PI / 2;
+walls[4].position.y = roomSize / 2;
+walls[4].rotation.x = Math.PI / 2;
+walls[5].position.y = -roomSize / 2;
+walls[5].rotation.x = -Math.PI / 2;
+walls.forEach(wall => scene.add(wall));
+
+// Content Planes
+const planeGeometry = new THREE.PlaneGeometry(2, 2);
+const planeMaterials = [
+    new THREE.MeshBasicMaterial({ color: 0xff0066 }),
+    new THREE.MeshBasicMaterial({ color: 0x00ffcc }),
+    new THREE.MeshBasicMaterial({ color: 0x6600ff }),
+    new THREE.MeshBasicMaterial({ color: 0xffff00 })
+];
+const contentPlanes = [
+    new THREE.Mesh(planeGeometry, planeMaterials[0]),
+    new THREE.Mesh(planeGeometry, planeMaterials[1]),
+    new THREE.Mesh(planeGeometry, planeMaterials[2]),
+    new THREE.Mesh(planeGeometry, planeMaterials[3])
+];
+contentPlanes[0].position.set(0, 0, -roomSize / 2 + 0.1);
+contentPlanes[1].position.set(-roomSize / 2 + 0.1, 0, 0);
+contentPlanes[1].rotation.y = Math.PI / 2;
+contentPlanes[2].position.set(roomSize / 2 - 0.1, 0, 0);
+contentPlanes[2].rotation.y = -Math.PI / 2;
+contentPlanes[3].position.set(0, 0, roomSize / 2 - 0.1);
+contentPlanes[3].rotation.y = Math.PI;
+contentPlanes.forEach(plane => scene.add(plane));
+
+// Content Divs
+const contentDivs = [
+    document.getElementById('homeContent'),
+    document.getElementById('aboutContent'),
+    document.getElementById('projectsContent'),
+    document.getElementById('contactContent')
+];
+
+// Particle System
+const particleCount = 1500;
+const particles = new THREE.BufferGeometry();
+const positions = new Float32Array(particleCount * 3);
+for (let i = 0; i < particleCount; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * roomSize * 2;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * roomSize * 2;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * roomSize * 2;
+}
+particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+const particleMaterial = new THREE.PointsMaterial({ 
+    color: 0x00ffcc, 
+    size: 0.05, 
+    transparent: true,
+    blending: THREE.AdditiveBlending 
+});
+const particleSystem = new THREE.Points(particles, particleMaterial);
+scene.add(particleSystem);
+
+// Camera Position
+camera.position.set(0, 1, 0);
+
+// Movement Controls
+let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+document.addEventListener('keydown', (event) => {
+    switch (event.code) {
+        case 'ArrowUp': case 'KeyW': moveForward = true; break;
+        case 'ArrowLeft': case 'KeyA': moveLeft = true; break;
+        case 'ArrowDown': case 'KeyS': moveBackward = true; break;
+        case 'ArrowRight': case 'KeyD': moveRight = true; break;
+    }
+});
+document.addEventListener('keyup', (event) => {
+    switch (event.code) {
+        case 'ArrowUp': case 'KeyW': moveForward = false; break;
+        case 'ArrowLeft': case 'KeyA': moveLeft = false; break;
+        case 'ArrowDown': case 'KeyS': moveBackward = false; break;
+        case 'ArrowRight': case 'KeyD': moveRight = false; break;
+    }
+});
+
+// Animation Loop
+const velocity = new THREE.Vector3();
+const direction = new THREE.Vector3();
+let prevTime = performance.now();
+function animate() {
+    requestAnimationFrame(animate);
+    const time = performance.now();
+    const delta = (time - prevTime) / 1000;
+
+    if (isStarted && controls.isLocked) {
+        velocity.x -= velocity.x * 10.0 * delta;
+        velocity.z -= velocity.z * 10.0 * delta;
+        direction.z = Number(moveForward) - Number(moveBackward);
+        direction.x = Number(moveRight) - Number(moveLeft);
+        direction.normalize();
+        if (moveForward || moveBackward) velocity.z -= direction.z * 400.0 * delta;
+        if (moveLeft || moveRight) velocity.x -= direction.x * 400.0 * delta;
+        controls.moveRight(-velocity.x * delta);
+        controls.moveForward(-velocity.z * delta);
+
+        const positions = particleSystem.geometry.attributes.position.array;
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3 + 1] += Math.sin(time * 0.001 + i) * 0.01;
+        }
+        particleSystem.geometry.attributes.position.needsUpdate = true;
+
+        contentPlanes.forEach((plane, index) => {
+            const distance = camera.position.distanceTo(plane.position);
+            contentDivs[index].style.display = distance < 2 ? 'block' : 'none';
+        });
+    }
+
+    renderer.render(scene, camera);
+    prevTime = time;
+}
+animate();
+
+// Resize Handler
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
