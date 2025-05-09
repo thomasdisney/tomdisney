@@ -6,8 +6,8 @@ on:
       - main
 
 permissions:
-  contents: read
-  pages: write
+  contents: write   
+  pages: write       
   id-token: write
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Add nojekyll (prevent hidden-file copy errors)
+      - name: Add nojekyll (prevent hidden‐file issues)
         run: |
           mkdir -p dist
           touch dist/.nojekyll
@@ -39,5 +39,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           publish_branch: gh-pages
-          # Replace this with your actual custom domain:
-          cname: tomdisney.com
+          cname: tomdisney.com   
