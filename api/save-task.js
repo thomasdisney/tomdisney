@@ -1,23 +1,21 @@
-// api/save-task.js
+import { createClient } from '@supabase/supabase-js';
 
-import { set } from '@vercel/edge-config';
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
+  if (req.method !== 'POST') return res.status(405).end();
 
-  try {
-    const task = req.body;
-    if (!task || !task.id) {
-      return res.status(400).json({ error: 'Invalid task data' });
-    }
+  const task = req.body;
+  if (!task || !task.id) return res.status(400).json({ error: 'Missing task data' });
 
-    await set(`task-${task.id}`, task);
+  const { error } = await supabase
+    .from('tasks')
+    .upsert(task, { onConflict: 'id' });
 
-    return res.status(200).json({ success: true });
-  } catch (err) {
-    console.error('Failed to save task:', err);
-    return res.status(500).json({ error: 'Failed to save task' });
-  }
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.status(200).json({ success: true });
 }
