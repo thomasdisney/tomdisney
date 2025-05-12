@@ -1,17 +1,16 @@
-// api/get-tasks.js
+import { createClient } from '@supabase/supabase-js';
 
-import { getAll } from '@vercel/edge-config';
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 export default async function handler(req, res) {
-  try {
-    const all = await getAll();
-    const tasks = Object.values(all).filter(
-      (item) => item?.id && item.id.startsWith?.('task-')
-    );
+  const { data, error } = await supabase
+    .from('tasks')
+    .select('*');
 
-    return res.status(200).json(tasks);
-  } catch (err) {
-    console.error('Failed to load tasks:', err);
-    return res.status(500).json({ error: 'Failed to load tasks' });
-  }
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.status(200).json(data);
 }
