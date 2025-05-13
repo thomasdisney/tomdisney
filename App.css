@@ -1,0 +1,158 @@
+/* Layout */
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 24px;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f9f9f9;
+  color: #333;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app-title {
+  font-size: 28px;
+}
+
+.project-select {
+  padding: 8px 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* Notification */
+.notification {
+  background: #d1e7dd;
+  color: #0f5132;
+  padding: 12px;
+  border-radius: 4px;
+  margin: 16px 0;
+  border-left: 5px solid #0f5132;
+}
+
+/* New Task Form */
+.new-task-form {
+  background: #fff;
+  padding: 16px;
+  margin-top: 24px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.task-input {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 8px;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.task-input.wide {
+  width: 60%;
+}
+
+.task-input.narrow {
+  width: 30%;
+}
+
+/* Tier Sections */
+.tier-section {
+  margin-top: 32px;
+}
+
+.tier-title {
+  font-size: 22px;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 8px;
+}
+
+.tier-empty {
+  color: #888;
+  font-style: italic;
+  margin-top: 12px;
+}
+
+/* Task Card */
+.task-card {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 16px;
+  margin-top: 12px;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.task-card.completed {
+  background: #f5f5f5;
+}
+
+.task-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.task-meta {
+  font-size: 12px;
+  color: #555;
+  margin-top: 4px;
+}
+
+.task-updates {
+  margin-top: 8px;
+}
+
+.task-update {
+  background: #fafafa;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.task-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* Buttons */
+.btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn.primary {
+  background: #0070f3;
+  color: white;
+}
+
+.btn.success {
+  background: #28a745;
+  color: white;
+}
+
+.btn.warning {
+  background: #ffc107;
+  color: black;
+}
+
+.btn.info {
+  background: #17a2b8;
+  color: white;
+}
+
+/* Misc */
+.loading {
+  margin-top: 24px;
+  font-size: 16px;
+}
