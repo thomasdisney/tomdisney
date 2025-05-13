@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import ReactDOM from "react-dom/client";
 import { createClient } from "@supabase/supabase-js";
+import "./App.css";
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -9,115 +9,47 @@ const supabase = createClient(
 
 function TierSection({ title, tasks, onMove, onDraftChange, onPost }) {
   return (
-    <div style={{ marginBottom: 32 }}>
-      <h2 style={{ fontSize: 22, borderBottom: "2px solid #ddd", paddingBottom: 8 }}>
+    <div className="tier-section">
+      <h2 className="tier-title">
         {title} ({tasks.length})
       </h2>
       {tasks.length === 0 ? (
-        <p style={{ color: "#888", fontStyle: "italic" }}>No tasks here.</p>
+        <p className="tier-empty">No tasks here.</p>
       ) : (
         tasks.map(task => (
-          <div
-            key={task.id}
-            style={{
-              border: "1px solid #ccc",
-              borderRadius: 6,
-              padding: 16,
-              marginTop: 12,
-              background: task.tier === "completed" ? "#f5f5f5" : "#fff",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
-            }}
-          >
-            <div style={{ fontSize: 18, fontWeight: 500 }}>{task.title}</div>
-            <div style={{ fontSize: 12, color: "#555", margin: "4px 0" }}>
-              Assigned to {task.assigned_to}
-            </div>
-            <div style={{ marginTop: 8 }}>
+          <div key={task.id} className={`task-card ${task.tier === "completed" ? "completed" : ""}`}>
+            <div className="task-title">{task.title}</div>
+            <div className="task-meta">Assigned to {task.assigned_to}</div>
+            <div className="task-updates">
               {task.updates.map((u, i) => (
-                <div
-                  key={i}
-                  style={{
-                    fontSize: 13,
-                    padding: "6px 8px",
-                    background: "#fafafa",
-                    borderRadius: 4,
-                    marginTop: 4
-                  }}
-                >
+                <div key={i} className="task-update">
                   <strong>{u.author}</strong>: {u.content}{" "}
-                  <small style={{ color: "#aaa" }}>
-                    {new Date(u.date).toLocaleDateString()}
-                  </small>
+                  <small>{new Date(u.date).toLocaleDateString()}</small>
                 </div>
               ))}
             </div>
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+            <div className="task-controls">
               <input
                 placeholder="Write comment..."
                 value={task.draft || ""}
                 onChange={e => onDraftChange(task.id, e.target.value)}
-                style={{
-                  flex: 1,
-                  padding: "8px 10px",
-                  borderRadius: 4,
-                  border: "1px solid #ccc"
-                }}
+                className="task-input"
               />
-              <button
-                onClick={() => onPost(task.id)}
-                style={{
-                  padding: "8px 12px",
-                  background: "#0070f3",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 4,
-                  cursor: "pointer"
-                }}
-              >
+              <button onClick={() => onPost(task.id)} className="btn primary">
                 Post
               </button>
               {task.tier !== "completed" && (
-                <button
-                  onClick={() => onMove(task.id, "completed")}
-                  style={{
-                    padding: "8px 12px",
-                    background: "#28a745",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    cursor: "pointer"
-                  }}
-                >
+                <button onClick={() => onMove(task.id, "completed")} className="btn success">
                   Complete
                 </button>
               )}
               {task.tier === "current" && (
-                <button
-                  onClick={() => onMove(task.id, "next")}
-                  style={{
-                    padding: "8px 12px",
-                    background: "#ffc107",
-                    color: "#000",
-                    border: "none",
-                    borderRadius: 4,
-                    cursor: "pointer"
-                  }}
-                >
+                <button onClick={() => onMove(task.id, "next")} className="btn warning">
                   Backlog
                 </button>
               )}
               {task.tier === "next" && (
-                <button
-                  onClick={() => onMove(task.id, "current")}
-                  style={{
-                    padding: "8px 12px",
-                    background: "#17a2b8",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    cursor: "pointer"
-                  }}
-                >
+                <button onClick={() => onMove(task.id, "current")} className="btn info">
                   Escalate
                 </button>
               )}
@@ -203,46 +135,37 @@ function App() {
   }
 
   return (
-    <div style={{ maxWidth: 800, margin: "auto", padding: 24, fontFamily: "sans-serif" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1 style={{ fontSize: 28 }}>Project Tracker</h1>
-        <select value={activeProject} onChange={e => setActiveProject(e.target.value)}>
+    <div className="container">
+      <header className="header">
+        <h1 className="app-title">Project Tracker</h1>
+        <select value={activeProject} onChange={e => setActiveProject(e.target.value)} className="project-select">
           {projects.map(p => (
             <option key={p}>{p}</option>
           ))}
         </select>
       </header>
 
-      {notification && (
-        <div style={{ background: "#d4edda", color: "#155724", padding: 12, borderRadius: 4, marginTop: 16 }}>
-          {notification}
-        </div>
-      )}
+      {notification && <div className="notification">{notification}</div>}
 
-      <section style={{ marginTop: 24, padding: 16, border: "1px solid #ccc", borderRadius: 6 }}>
-        <h2 style={{ marginBottom: 12 }}>New Task</h2>
+      <section className="new-task-form">
+        <h2>New Task</h2>
         <input
           placeholder="Title"
           value={newTask.title}
           onChange={e => setNewTask({ ...newTask, title: e.target.value })}
-          style={{ padding: 8, width: "60%", marginRight: 8, borderRadius: 4, border: "1px solid #ccc" }}
+          className="task-input wide"
         />
         <input
           placeholder="Assign to"
           value={newTask.assigned_to}
           onChange={e => setNewTask({ ...newTask, assigned_to: e.target.value })}
-          style={{ padding: 8, width: "25%", marginRight: 8, borderRadius: 4, border: "1px solid #ccc" }}
+          className="task-input narrow"
         />
-        <button
-          onClick={createTask}
-          style={{ padding: "8px 16px", background: "#0070f3", color: "#fff", border: "none", borderRadius: 4 }}
-        >
-          Add Task
-        </button>
+        <button onClick={createTask} className="btn primary">Add Task</button>
       </section>
 
       {loading ? (
-        <p style={{ marginTop: 24 }}>Loading tasks…</p>
+        <p className="loading">Loading tasks…</p>
       ) : (
         <>
           <TierSection
@@ -272,5 +195,4 @@ function App() {
   );
 }
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App />);
+export default App;
