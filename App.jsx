@@ -35,23 +35,15 @@ function TierSection({ title, tasks, onMove, onDraftChange, onPost }) {
                 onChange={e => onDraftChange(task.id, e.target.value)}
                 className="task-input"
               />
-              <button onClick={() => onPost(task.id)} className="btn primary">
-                Post
-              </button>
+              <button onClick={() => onPost(task.id)} className="btn primary">Post</button>
               {task.tier !== "completed" && (
-                <button onClick={() => onMove(task.id, "completed")} className="btn success">
-                  Complete
-                </button>
+                <button onClick={() => onMove(task.id, "completed")} className="btn success">Complete</button>
               )}
               {task.tier === "current" && (
-                <button onClick={() => onMove(task.id, "next")} className="btn warning">
-                  Backlog
-                </button>
+                <button onClick={() => onMove(task.id, "next")} className="btn warning">Backlog</button>
               )}
               {task.tier === "next" && (
-                <button onClick={() => onMove(task.id, "current")} className="btn info">
-                  Escalate
-                </button>
+                <button onClick={() => onMove(task.id, "current")} className="btn info">Escalate</button>
               )}
             </div>
           </div>
@@ -62,35 +54,58 @@ function TierSection({ title, tasks, onMove, onDraftChange, onPost }) {
 }
 
 function App() {
-  const [projects, setProjects] = useState(["Customer A", "Customer B", "Customer C"]);
-  const [activeProject, setActiveProject] = useState(projects[0]);
+  const [projects, setProjects] = useState([]);
+  const [activeProjectId, setActiveProjectId] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newTask, setNewTask] = useState({ title: "", assigned_to: "" });
+  const [newProjectName, setNewProjectName] = useState("");
   const [notification, setNotification] = useState("");
 
   useEffect(() => {
-    fetchTasks();
-  }, [activeProject]);
+    fetchProjects();
+  }, []);
+
+  useEffect(() => {
+    if (activeProjectId) fetchTasks();
+  }, [activeProjectId]);
+
+  async function fetchProjects() {
+    const { data, error } = await supabase.from("projects").select("*").order("created_at", { ascending: true });
+    if (!error) {
+      setProjects(data);
+      if (data.length > 0) setActiveProjectId(data[0].id);
+    }
+  }
 
   async function fetchTasks() {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("tasks")
       .select("*")
-      .eq("project", activeProject)
+      .eq("project", activeProjectId)
       .order("created", { ascending: true });
-    setTasks(data.map(t => ({ ...t, draft: "" })));
+    if (!error) setTasks(data.map(t => ({ ...t, draft: "" })));
     setLoading(false);
   }
 
+  async function createProject() {
+    if (!newProjectName) return;
+    const { data, error } = await supabase.from("projects").insert([{ name: newProjectName }]).select();
+    if (!error && data.length > 0) {
+      setProjects(p => [...p, data[0]]);
+      setActiveProjectId(data[0].id);
+      setNewProjectName("");
+      notify("Project created");
+    }
+  }
+
   async function createTask() {
-    if (!newTask.title || !newTask.assigned_to) return;
+    if (!newTask.title || !newTask.assigned_to || !activeProjectId) return;
     await supabase.from("tasks").insert([
       {
         ...newTask,
-        id: `t-${Date.now()}`,
-        project: activeProject,
+        project: activeProjectId,
         created_by: "You",
         created: new Date().toISOString(),
         tier: "next",
@@ -107,9 +122,7 @@ function App() {
     const update = { author: "You", content: task.draft, date: new Date().toISOString() };
     await supabase
       .from("tasks")
-      .update({
-        updates: [...task.updates, update]
-      })
+      .update({ updates: [...task.updates, update] })
       .eq("id", id);
     notify("Comment posted");
     fetchTasks();
@@ -120,10 +133,7 @@ function App() {
     const update = { author: "You", content: `Moved to ${tier}`, date: new Date().toISOString() };
     await supabase
       .from("tasks")
-      .update({
-        tier,
-        updates: [...task.updates, update]
-      })
+      .update({ tier, updates: [...task.updates, update] })
       .eq("id", id);
     notify("Task moved");
     fetchTasks();
@@ -138,12 +148,27 @@ function App() {
     <div className="container">
       <header className="header">
         <h1 className="app-title">Project Tracker</h1>
-        <select value={activeProject} onChange={e => setActiveProject(e.target.value)} className="project-select">
+        <select
+          value={activeProjectId || ""}
+          onChange={e => setActiveProjectId(e.target.value)}
+          className="project-select"
+        >
           {projects.map(p => (
-            <option key={p}>{p}</option>
+            <option key={p.id} value={p.id}>{p.name}</option>
           ))}
         </select>
       </header>
+
+      <section className="new-task-form">
+        <h2>New Project</h2>
+        <input
+          placeholder="Project name"
+          value={newProjectName}
+          onChange={e => setNewProjectName(e.target.value)}
+          className="task-input wide"
+        />
+        <button onClick={createProject} className="btn info">Create Project</button>
+      </section>
 
       {notification && <div className="notification">{notification}</div>}
 
